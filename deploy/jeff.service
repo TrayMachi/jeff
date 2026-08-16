@@ -1,0 +1,17 @@
+[Unit]
+Description=Jeff Telegram OpenCode bot
+After=network-online.target opencode.service
+Wants=network-online.target
+Requires=opencode.service
+
+[Service]
+Type=simple
+User=tray
+WorkingDirectory=/home/tray/project/jeff
+EnvironmentFile=/home/tray/project/jeff/.env
+ExecStart=/home/tray/project/jeff/bin/jeff
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
