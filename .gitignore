@@ -2,3 +2,4 @@ bin/
 data/*.sqlite*
 .env
 config.yaml
+.commandcode/settings.json
