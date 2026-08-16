@@ -16,7 +16,7 @@ Set `TELEGRAM_BOT_TOKEN` from BotFather. `TELEGRAM_ALLOWED_CHAT_IDS` is a comma-
 
 Jeff receives updates with Telegram long polling, so it does not need a public IP, webhook, tunnel, or listening port. In private chats it accepts ordinary messages. In groups it accepts messages mentioning the bot or supported commands.
 
-For isolated group requests, convert the main group to a Telegram forum supergroup, make Jeff an administrator with topic-management permission, and set `TELEGRAM_FORUM_CHAT_ID` to its numeric chat ID. Each new top-level prompt in that group creates a forum topic, copies the prompt into it, replies to the original message with a topic link, and uses the topic as the OpenCode conversation boundary. Follow-ups should be sent inside that topic.
+For isolated group requests, convert the main group to a Telegram forum supergroup, make Jeff an administrator with topic-management permission, and set `TELEGRAM_FORUM_CHAT_ID` to its numeric chat ID. Each new top-level `#project prompt` or `@jeff prompt` in that group creates a forum topic, copies the prompt into it, replies to the original message with a topic link, and uses the topic as the OpenCode conversation boundary. Follow-ups inside the topic must mention `@jeff`; unmentioned messages remain available for human discussion.
 
 ## Commands
 

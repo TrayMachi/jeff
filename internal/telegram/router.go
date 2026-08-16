@@ -80,9 +80,8 @@ func (r *Router) Handle(ctx context.Context, update Update) {
 
 	topLevel := msg.ReplyToMessage == nil && (msg.MessageThreadID == 0 || msg.MessageThreadID == 1)
 	inConfiguredForum := r.ForumChatID != 0 && msg.Chat.ID == r.ForumChatID && msg.Chat.Type == "supergroup"
-	newForumRequest := inConfiguredForum && topLevel && r.Forum != nil && (!isCommand || command.Name == "project")
-	inForumTopic := inConfiguredForum && msg.MessageThreadID != 0
-	if msg.Chat.Type != "private" && !mentions && !isCommand && !newForumRequest && !inForumTopic {
+	newForumRequest := inConfiguredForum && topLevel && r.Forum != nil && !isCommand && (mentions || requested != "")
+	if msg.Chat.Type != "private" && !mentions && !newForumRequest {
 		return
 	}
 	if newForumRequest {
