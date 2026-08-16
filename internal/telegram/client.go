@@ -81,5 +81,10 @@ func (c *Client) EditMessage(ctx context.Context, p EditMessageParams) (Message,
 func (c *Client) AnswerCallback(ctx context.Context, p CallbackAnswerParams) error {
 	return c.call(ctx, "answerCallbackQuery", p, nil)
 }
+func (c *Client) CreateForumTopic(ctx context.Context, p CreateForumTopicParams) (ForumTopic, error) {
+	var out ForumTopic
+	err := c.call(ctx, "createForumTopic", p, &out)
+	return out, err
+}
 func (c *Client) SetBaseURL(base string) { c.baseURL = strings.TrimRight(base, "/") }
 func ChatIDString(id int64) string       { return strconv.FormatInt(id, 10) }

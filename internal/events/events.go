@@ -18,5 +18,6 @@ type IncomingMessage struct {
 	MentionsBot      bool
 	RequestedProject string
 	Command          string
+	InForumTopic     bool
 }
 type Responder func(context.Context, IncomingMessage) error

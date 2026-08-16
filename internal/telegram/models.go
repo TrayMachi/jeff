@@ -17,6 +17,8 @@ type Chat struct {
 	ID       int64  `json:"id"`
 	Type     string `json:"type"`
 	Username string `json:"username"`
+	Title    string `json:"title"`
+	IsForum  bool   `json:"is_forum"`
 }
 type Message struct {
 	MessageID       int64    `json:"message_id"`
@@ -70,4 +72,16 @@ type CallbackAnswerParams struct {
 	CallbackQueryID string `json:"callback_query_id"`
 	Text            string `json:"text,omitempty"`
 	ShowAlert       bool   `json:"show_alert,omitempty"`
+}
+type ForumTopic struct {
+	MessageThreadID   int64  `json:"message_thread_id"`
+	Name              string `json:"name"`
+	IconColor         int    `json:"icon_color"`
+	IconCustomEmojiID string `json:"icon_custom_emoji_id,omitempty"`
+}
+type CreateForumTopicParams struct {
+	ChatID            int64  `json:"chat_id"`
+	Name              string `json:"name"`
+	IconColor         int    `json:"icon_color,omitempty"`
+	IconCustomEmojiID string `json:"icon_custom_emoji_id,omitempty"`
 }

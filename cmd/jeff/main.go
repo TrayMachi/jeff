@@ -82,8 +82,8 @@ func run() error {
 	resolver := session.NewResolver(db, oc, catalog.Config)
 	responder := app.BuildResponder(app.Deps{Telegram: bot, OpenCode: eventStream, Resolver: resolver, Projects: catalog.Config, QA: qa, Stream: streamer.StreamReply, Questions: questions})
 	dispatcher := events.NewDispatcher(events.DispatcherParams{Telegram: bot, Responder: responder, Canceller: app.BuildCanceller(db, oc, catalog.Config, questions.ExpireConversation), Status: app.BuildStatusProvider(db, oc, catalog.Config)})
-	router := &telegram.Router{BotUsername: me.Username, Allowed: cfg.TelegramAllowedChats, Dispatch: func(ctx context.Context, incoming telegram.Incoming) {
-		dispatcher.Dispatch(ctx, events.IncomingMessage{Conversation: incoming.Conversation, MessageID: incoming.MessageID, ChatID: incoming.ChatID, TopicID: incoming.TopicID, Text: incoming.Text, UserID: incoming.UserID, UserName: incoming.UserName, ChatType: incoming.ChatType, MentionsBot: incoming.MentionsBot, RequestedProject: incoming.RequestedProject, Command: incoming.Command})
+	router := &telegram.Router{BotUsername: me.Username, Allowed: cfg.TelegramAllowedChats, ForumChatID: cfg.TelegramForumChatID, Forum: bot, Dispatch: func(ctx context.Context, incoming telegram.Incoming) {
+		dispatcher.Dispatch(ctx, events.IncomingMessage{Conversation: incoming.Conversation, MessageID: incoming.MessageID, ChatID: incoming.ChatID, TopicID: incoming.TopicID, Text: incoming.Text, UserID: incoming.UserID, UserName: incoming.UserName, ChatType: incoming.ChatType, MentionsBot: incoming.MentionsBot, RequestedProject: incoming.RequestedProject, Command: incoming.Command, InForumTopic: incoming.InForumTopic})
 	}, TextHandler: func(ctx context.Context, incoming telegram.Incoming) bool {
 		return questions.HandleText(ctx, incoming.Conversation.String(), incoming.UserID, incoming.Text)
 	}, Callback: func(ctx context.Context, q telegram.CallbackQuery) {

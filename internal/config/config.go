@@ -15,6 +15,7 @@ import (
 type Config struct {
 	TelegramBotToken     string
 	TelegramAllowedChats map[int64]bool
+	TelegramForumChatID  int64
 	OpencodeBaseURL      string
 	OpencodeUsername     string
 	OpencodePassword     string
@@ -55,6 +56,12 @@ func Load() (*Config, error) {
 		return nil, err
 	}
 	cfg.TelegramAllowedChats = allowed
+	if raw := strings.TrimSpace(os.Getenv("TELEGRAM_FORUM_CHAT_ID")); raw != "" {
+		cfg.TelegramForumChatID, err = strconv.ParseInt(raw, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid Telegram forum chat id %q: %w", raw, err)
+		}
+	}
 	if strings.TrimSpace(cfg.TelegramBotToken) == "" {
 		return nil, errors.New("TELEGRAM_BOT_TOKEN must not be empty")
 	}

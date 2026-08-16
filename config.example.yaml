@@ -14,6 +14,7 @@ qa:
 telegram:
   group_requires_mention: true
   question_answer_policy: initiator_only
+  # Set TELEGRAM_FORUM_CHAT_ID in .env to enable one topic per new request.
 
 # Optional recurring jobs.
 # jobs:

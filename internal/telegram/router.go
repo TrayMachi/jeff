@@ -2,6 +2,9 @@ package telegram
 
 import (
 	"context"
+	"fmt"
+	"log/slog"
+	"strconv"
 	"strings"
 
 	"github.com/local/jeff/internal/conversation"
@@ -20,11 +23,19 @@ type Incoming struct {
 	RequestedProject string
 	Command          string
 	MentionUserID    int64
+	InForumTopic     bool
+}
+
+type ForumClient interface {
+	CreateForumTopic(context.Context, CreateForumTopicParams) (ForumTopic, error)
+	SendMessage(context.Context, SendMessageParams) (Message, error)
 }
 
 type Router struct {
 	BotUsername string
 	Allowed     map[int64]bool
+	ForumChatID int64
+	Forum       ForumClient
 	Dispatch    func(context.Context, Incoming)
 	Callback    func(context.Context, CallbackQuery)
 	TextHandler func(context.Context, Incoming) bool
@@ -50,19 +61,11 @@ func (r *Router) Handle(ctx context.Context, update Update) {
 		return
 	}
 	mentions := messageMentionsBot(msg, r.BotUsername)
-	if msg.Chat.Type != "private" && !mentions && !isCommand {
-		return
-	}
-	rootID := replyRoot(msg)
-	key := conversation.RootFor(msg.Chat.ID, msg.MessageThreadID, msg.MessageID, rootID)
-	if msg.Chat.Type == "private" {
-		key.RootMessageID = 0
-	}
 	text := strings.TrimSpace(msg.Text)
-	requested := ""
 	if mentions {
 		text = stripBotMention(msg.Text, msg.Entities, r.BotUsername)
 	}
+	requested := ""
 	if isCommand {
 		switch command.Name {
 		case "project":
@@ -74,13 +77,112 @@ func (r *Router) Handle(ctx context.Context, update Update) {
 	} else {
 		requested, text = conversation.ParsePrompt(text)
 	}
-	incoming := Incoming{Conversation: key, MessageID: msg.MessageID, ChatID: msg.Chat.ID, TopicID: msg.MessageThreadID, Text: text, UserID: msg.From.ID, UserName: displayName(*msg.From), ChatType: msg.Chat.Type, MentionsBot: mentions, RequestedProject: requested, Command: command.Name}
+
+	topLevel := msg.ReplyToMessage == nil && (msg.MessageThreadID == 0 || msg.MessageThreadID == 1)
+	inConfiguredForum := r.ForumChatID != 0 && msg.Chat.ID == r.ForumChatID && msg.Chat.Type == "supergroup"
+	newForumRequest := inConfiguredForum && topLevel && r.Forum != nil && (!isCommand || command.Name == "project")
+	inForumTopic := inConfiguredForum && msg.MessageThreadID != 0
+	if msg.Chat.Type != "private" && !mentions && !isCommand && !newForumRequest && !inForumTopic {
+		return
+	}
+	if newForumRequest {
+		r.handleNewForumRequest(ctx, msg, text, requested)
+		return
+	}
+
+	incoming := r.incoming(msg, text, requested, command.Name)
 	if r.TextHandler != nil && r.TextHandler(ctx, incoming) {
 		return
 	}
 	if r.Dispatch != nil {
 		r.Dispatch(ctx, incoming)
 	}
+}
+
+func (r *Router) handleNewForumRequest(ctx context.Context, msg *Message, text, requested string) {
+	name := topicName(requested, displayName(*msg.From), text)
+	topic, err := r.Forum.CreateForumTopic(ctx, CreateForumTopicParams{ChatID: msg.Chat.ID, Name: name})
+	if err != nil {
+		slog.Warn("failed to create Telegram forum topic", "chat", msg.Chat.ID, "error", err)
+		_, _ = r.Forum.SendMessage(ctx, SendMessageParams{ChatID: msg.Chat.ID, ReplyToMessageID: msg.MessageID, Text: "I couldn't create a request topic. Check that Jeff is an administrator with topic-management permission."})
+		return
+	}
+	copied, err := r.Forum.SendMessage(ctx, SendMessageParams{ChatID: msg.Chat.ID, MessageThreadID: topic.MessageThreadID, Text: text})
+	if err != nil {
+		slog.Warn("failed to copy request into Telegram forum topic", "chat", msg.Chat.ID, "topic", topic.MessageThreadID, "error", err)
+		_, _ = r.Forum.SendMessage(ctx, SendMessageParams{ChatID: msg.Chat.ID, ReplyToMessageID: msg.MessageID, Text: "I created the topic but couldn't copy the request into it, so nothing was started."})
+		return
+	}
+	link := topicLink(msg.Chat, copied.MessageID, topic.MessageThreadID)
+	ack := fmt.Sprintf("Started request topic %q.", name)
+	if link != "" {
+		ack += " Open it here: " + link
+	}
+	_, _ = r.Forum.SendMessage(ctx, SendMessageParams{ChatID: msg.Chat.ID, ReplyToMessageID: msg.MessageID, Text: ack})
+	incoming := Incoming{
+		Conversation:     conversation.Key{ChatID: msg.Chat.ID, TopicID: topic.MessageThreadID, RootMessageID: topic.MessageThreadID},
+		MessageID:        copied.MessageID,
+		ChatID:           msg.Chat.ID,
+		TopicID:          topic.MessageThreadID,
+		Text:             text,
+		UserID:           msg.From.ID,
+		UserName:         displayName(*msg.From),
+		ChatType:         msg.Chat.Type,
+		MentionsBot:      true,
+		RequestedProject: requested,
+		InForumTopic:     true,
+	}
+	if r.Dispatch != nil {
+		r.Dispatch(ctx, incoming)
+	}
+}
+
+func (r *Router) incoming(msg *Message, text, requested, command string) Incoming {
+	key := conversation.RootFor(msg.Chat.ID, msg.MessageThreadID, msg.MessageID, replyRoot(msg))
+	if msg.MessageThreadID != 0 {
+		key.RootMessageID = msg.MessageThreadID
+	}
+	if msg.Chat.Type == "private" {
+		key.RootMessageID = 0
+	}
+	return Incoming{Conversation: key, MessageID: msg.MessageID, ChatID: msg.Chat.ID, TopicID: msg.MessageThreadID, Text: text, UserID: msg.From.ID, UserName: displayName(*msg.From), ChatType: msg.Chat.Type, MentionsBot: messageMentionsBot(msg, r.BotUsername), RequestedProject: requested, Command: command, InForumTopic: r.ForumChatID != 0 && msg.Chat.ID == r.ForumChatID && msg.Chat.Type == "supergroup" && msg.MessageThreadID != 0}
+}
+
+func topicName(project, user, prompt string) string {
+	parts := []string{}
+	if project != "" {
+		parts = append(parts, "#"+project)
+	}
+	if user != "" {
+		parts = append(parts, user)
+	}
+	if prompt != "" {
+		parts = append(parts, strings.Join(strings.Fields(prompt), " "))
+	}
+	name := strings.Join(parts, " — ")
+	runes := []rune(name)
+	if len(runes) > 128 {
+		name = string(runes[:125]) + "..."
+	}
+	if name == "" {
+		return "Jeff request"
+	}
+	return name
+}
+
+func topicLink(chat Chat, messageID, threadID int64) string {
+	if messageID == 0 || threadID == 0 {
+		return ""
+	}
+	if chat.Username != "" {
+		return fmt.Sprintf("https://t.me/%s/%d?thread=%d", chat.Username, messageID, threadID)
+	}
+	id := strconv.FormatInt(chat.ID, 10)
+	id = strings.TrimPrefix(id, "-100")
+	if id == "" || strings.HasPrefix(id, "-") {
+		return ""
+	}
+	return fmt.Sprintf("https://t.me/c/%s/%d?thread=%d", id, messageID, threadID)
 }
 
 func replyRoot(msg *Message) int64 {
@@ -114,6 +216,7 @@ func displayName(u User) string {
 	}
 	return strings.TrimSpace(u.FirstName + " " + u.LastName)
 }
+
 func messageMentionsBot(msg *Message, username string) bool {
 	if username == "" {
 		return false

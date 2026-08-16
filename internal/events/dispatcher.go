@@ -34,7 +34,7 @@ func NewDispatcher(p DispatcherParams) *Dispatcher {
 	return &Dispatcher{telegram: p.Telegram, responder: p.Responder, cancel: p.Canceller, status: p.Status, running: map[string]int{}}
 }
 func (d *Dispatcher) Dispatch(ctx context.Context, msg IncomingMessage) {
-	if msg.ChatType != "private" && !msg.MentionsBot && msg.Command == "" {
+	if msg.ChatType != "private" && !msg.MentionsBot && msg.Command == "" && !msg.InForumTopic {
 		return
 	}
 	switch strings.ToLower(strings.TrimSpace(msg.Text)) {
