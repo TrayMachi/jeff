@@ -49,14 +49,18 @@ func TestUnmentionedTopicDiscussionDoesNotDispatch(t *testing.T) {
 	called := false
 	r := &Router{BotUsername: "jeff", Allowed: map[int64]bool{-1007: true}, ForumChatID: -1007, Dispatch: func(context.Context, Incoming) { called = true }}
 	r.Handle(context.Background(), Update{Message: &Message{MessageID: 11, From: &User{ID: 4}, Chat: Chat{ID: -1007, Type: "supergroup"}, MessageThreadID: 78, Text: "let's discuss this first"}})
-	if called { t.Fatal("dispatched unmentioned topic discussion") }
+	if called {
+		t.Fatal("dispatched unmentioned topic discussion")
+	}
 }
 
 func TestMentionedTopicFollowUpDispatches(t *testing.T) {
 	called := false
 	r := &Router{BotUsername: "jeff", Allowed: map[int64]bool{-1007: true}, ForumChatID: -1007, Dispatch: func(_ context.Context, msg Incoming) { called = msg.Text == "continue" }}
 	r.Handle(context.Background(), Update{Message: &Message{MessageID: 12, From: &User{ID: 4}, Chat: Chat{ID: -1007, Type: "supergroup"}, MessageThreadID: 78, Text: "@jeff continue", Entities: []Entity{{Type: "mention", Offset: 0, Length: 5}}}})
-	if !called { t.Fatal("did not dispatch mentioned topic follow-up") }
+	if !called {
+		t.Fatal("did not dispatch mentioned topic follow-up")
+	}
 }
 
 func TestTopicLink(t *testing.T) {
