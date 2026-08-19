@@ -96,7 +96,7 @@ func (d *Dispatcher) handleStatus(ctx context.Context, msg IncomingMessage) {
 	d.reply(ctx, msg, text)
 }
 func (d *Dispatcher) reply(ctx context.Context, msg IncomingMessage, text string) {
-	_, err := d.telegram.SendMessage(ctx, telegram.SendMessageParams{ChatID: msg.ChatID, MessageThreadID: msg.TopicID, ReplyToMessageID: msg.MessageID, Text: text})
+	_, err := d.telegram.SendMessage(ctx, telegram.SendMessageParams{ChatID: msg.ChatID, MessageThreadID: msg.TopicID, ReplyToMessageID: msg.MessageID, Text: text, ParseMode: "HTML"})
 	if err != nil {
 		slog.Warn("failed to send Telegram reply", "error", err)
 	}

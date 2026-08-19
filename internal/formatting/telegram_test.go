@@ -25,3 +25,19 @@ func TestPlainLeavesTextUntouched(t *testing.T) {
 		t.Fatal(got)
 	}
 }
+
+func TestMarkdownToHTML(t *testing.T) {
+	input := "**Project:** `demo`\n**Path:** `/home/tray/projects/demo`"
+	want := "<b>Project:</b> <code>demo</code>\n<b>Path:</b> <code>/home/tray/projects/demo</code>"
+	if got := MarkdownToHTML(input); got != want {
+		t.Fatalf("MarkdownToHTML() = %q, want %q", got, want)
+	}
+}
+
+func TestMarkdownToHTMLEscapesMarkupAndCode(t *testing.T) {
+	input := "**unsafe:** <tag> & `a<b>`"
+	want := "<b>unsafe:</b> &lt;tag&gt; &amp; <code>a&lt;b&gt;</code>"
+	if got := MarkdownToHTML(input); got != want {
+		t.Fatalf("MarkdownToHTML() = %q, want %q", got, want)
+	}
+}

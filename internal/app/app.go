@@ -95,12 +95,12 @@ func available(c *contexts.ContextsConfig) string {
 	return strings.Join(names, ", ")
 }
 func reply(ctx context.Context, t TelegramClient, msg events.IncomingMessage, text string) error {
-	_, err := t.SendMessage(ctx, telegram.SendMessageParams{ChatID: msg.ChatID, MessageThreadID: msg.TopicID, ReplyToMessageID: msg.MessageID, Text: formatting.Plain(text)})
+	_, err := t.SendMessage(ctx, telegram.SendMessageParams{ChatID: msg.ChatID, MessageThreadID: msg.TopicID, ReplyToMessageID: msg.MessageID, Text: formatting.Plain(text), ParseMode: "HTML"})
 	return err
 }
 func sendChunks(ctx context.Context, t TelegramClient, msg events.IncomingMessage, text string) error {
 	for _, chunk := range formatting.Chunks(text, formatting.MaxMessageRunes) {
-		if _, err := t.SendMessage(ctx, telegram.SendMessageParams{ChatID: msg.ChatID, MessageThreadID: msg.TopicID, ReplyToMessageID: msg.MessageID, Text: formatting.Plain(chunk)}); err != nil {
+		if _, err := t.SendMessage(ctx, telegram.SendMessageParams{ChatID: msg.ChatID, MessageThreadID: msg.TopicID, ReplyToMessageID: msg.MessageID, Text: formatting.MarkdownToHTML(chunk), ParseMode: "HTML"}); err != nil {
 			return err
 		}
 	}
@@ -119,7 +119,7 @@ func (s *status) Update(ctx context.Context, text string) error {
 	if s.done || s.edits >= streamer.LiveStatusEditBudget {
 		return nil
 	}
-	text = formatting.Plain(text)
+	text = formatting.MarkdownToHTML(text)
 	if s.messageID == 0 {
 		m, err := s.t.SendMessage(ctx, telegram.SendMessageParams{ChatID: s.chat, MessageThreadID: s.topic, Text: text, ParseMode: "HTML"})
 		if err == nil {
@@ -138,7 +138,7 @@ func (s *status) Finish(ctx context.Context, text string) error {
 		return nil
 	}
 	s.done = true
-	_, err := s.t.EditMessage(ctx, telegram.EditMessageParams{ChatID: s.chat, MessageID: s.messageID, Text: formatting.Plain(text), ParseMode: "HTML"})
+	_, err := s.t.EditMessage(ctx, telegram.EditMessageParams{ChatID: s.chat, MessageID: s.messageID, Text: formatting.MarkdownToHTML(text), ParseMode: "HTML"})
 	return err
 }
 func BuildStatus(t TelegramClient, chat, topic int64) streamer.RunStatus {
