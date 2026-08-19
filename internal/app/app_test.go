@@ -1,0 +1,45 @@
+package app
+
+import (
+	"context"
+	"testing"
+
+	"github.com/local/jeff/internal/contexts"
+	"github.com/local/jeff/internal/events"
+	"github.com/local/jeff/internal/telegram"
+)
+
+type responderTelegram struct {
+	sent []telegram.SendMessageParams
+}
+
+func (f *responderTelegram) SendMessage(_ context.Context, p telegram.SendMessageParams) (telegram.Message, error) {
+	f.sent = append(f.sent, p)
+	return telegram.Message{}, nil
+}
+
+func (f *responderTelegram) EditMessage(_ context.Context, _ telegram.EditMessageParams) (telegram.Message, error) {
+	return telegram.Message{}, nil
+}
+
+func TestProjectCommandListsProjectsWithoutStartingRun(t *testing.T) {
+	tg := &responderTelegram{}
+	responder := BuildResponder(Deps{
+		Telegram: tg,
+		Projects: &contexts.ContextsConfig{Contexts: map[string]contexts.ContextConfig{
+			"demo": {},
+			"api":  {},
+		}},
+	})
+
+	err := responder(context.Background(), events.IncomingMessage{Command: "project", ChatID: 7, MessageID: 13})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(tg.sent) != 1 {
+		t.Fatalf("sent %d messages, want 1", len(tg.sent))
+	}
+	if got, want := tg.sent[0].Text, "Available projects: #api, #demo"; got != want {
+		t.Fatalf("text = %q, want %q", got, want)
+	}
+}

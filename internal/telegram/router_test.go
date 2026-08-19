@@ -63,6 +63,15 @@ func TestMentionedTopicFollowUpDispatches(t *testing.T) {
 	}
 }
 
+func TestMentionedSlashProjectIsParsedAsCommand(t *testing.T) {
+	var got Incoming
+	r := &Router{BotUsername: "jeff", Allowed: map[int64]bool{7: true}, Dispatch: func(_ context.Context, msg Incoming) { got = msg }}
+	r.Handle(context.Background(), Update{Message: &Message{MessageID: 13, From: &User{ID: 4}, Chat: Chat{ID: 7, Type: "group"}, Text: "@jeff /project", Entities: []Entity{{Type: "mention", Offset: 0, Length: 5}}}})
+	if got.Command != "project" || got.Text != "" || got.RequestedProject != "" {
+		t.Fatalf("got %+v", got)
+	}
+}
+
 func TestTopicLink(t *testing.T) {
 	if got := topicLink(Chat{ID: -100123, Username: "main"}, 55, 77); got != "https://t.me/main/55?thread=77" {
 		t.Fatal(got)

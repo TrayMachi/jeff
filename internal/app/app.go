@@ -16,6 +16,7 @@ import (
 	"github.com/local/jeff/internal/streamer"
 	"github.com/local/jeff/internal/telegram"
 	"github.com/local/jeff/internal/turncontext"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -92,6 +93,7 @@ func available(c *contexts.ContextsConfig) string {
 	for n := range c.Contexts {
 		names = append(names, "#"+n)
 	}
+	sort.Strings(names)
 	return strings.Join(names, ", ")
 }
 func reply(ctx context.Context, t TelegramClient, msg events.IncomingMessage, text string) error {

@@ -56,14 +56,14 @@ func (r *Router) Handle(ctx context.Context, update Update) {
 	if msg == nil || msg.From == nil || msg.From.IsBot || !r.Allowed[msg.Chat.ID] {
 		return
 	}
-	command, isCommand := conversation.ParseCommand(msg.Text, r.BotUsername)
-	if isCommand && command.Name != "cancel" && command.Name != "stop" && command.Name != "status" && command.Name != "project" {
-		return
-	}
 	mentions := messageMentionsBot(msg, r.BotUsername)
 	text := strings.TrimSpace(msg.Text)
 	if mentions {
 		text = stripBotMention(msg.Text, msg.Entities, r.BotUsername)
+	}
+	command, isCommand := conversation.ParseCommand(text, r.BotUsername)
+	if isCommand && command.Name != "cancel" && command.Name != "stop" && command.Name != "status" && command.Name != "project" {
+		return
 	}
 	requested := ""
 	if isCommand {
