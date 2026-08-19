@@ -1,6 +1,6 @@
 SHELL := /usr/bin/env bash
 
-.PHONY: fmt test vet build check
+.PHONY: fmt test vet build check deploy
 
 fmt:
 	gofmt -w .
@@ -16,3 +16,6 @@ build:
 	go build -buildvcs=false -o bin/jeff ./cmd/jeff
 
 check: fmt test vet build
+
+deploy: build
+	@sudo -n /usr/bin/systemctl restart jeff.service

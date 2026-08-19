@@ -41,4 +41,9 @@ sudo ./deploy/install.sh
 journalctl -u jeff.service -f
 ```
 
+After the service is installed, configure the one-time rule in
+`deploy/jeff-deploy.sudoers` and use `make deploy` for normal code changes.
+That rule allows only a passwordless restart of `jeff.service`; unit changes
+still require `sudo ./deploy/install.sh`.
+
 The install script only manages `jeff.service`; it does not touch Ivy, `bot.service`, or `opencode.service`.

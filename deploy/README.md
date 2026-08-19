@@ -14,4 +14,18 @@ make check
 sudo ./deploy/install.sh
 ```
 
+For passwordless repeat deployments, validate and install the narrowly scoped
+sudoers rule once:
+
+```bash
+sudo visudo -cf deploy/jeff-deploy.sudoers
+sudo install -o root -g root -m 0440 deploy/jeff-deploy.sudoers /etc/sudoers.d/jeff-deploy
+make deploy
+```
+
+`make deploy` builds `bin/jeff` and permits `sudo` to restart only
+`jeff.service`; it does not grant passwordless access to the installer,
+`make`, or a shell. If the systemd unit changes, rerun `sudo
+./deploy/install.sh` manually.
+
 Check logs with `journalctl -u jeff.service -f`. The service runs as `tray`, depends on `opencode.service`, restarts after failure, and stores its session database separately from Ivy.
