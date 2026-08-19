@@ -16,6 +16,7 @@ import (
 	"github.com/local/jeff/internal/streamer"
 	"github.com/local/jeff/internal/telegram"
 	"github.com/local/jeff/internal/turncontext"
+	"html"
 	"sort"
 	"strconv"
 	"strings"
@@ -48,7 +49,7 @@ func BuildResponder(d Deps) events.Responder {
 	return func(ctx context.Context, msg events.IncomingMessage) error {
 		prompt := strings.TrimSpace(msg.Text)
 		if msg.Command == "project" && msg.RequestedProject == "" && prompt == "" {
-			return reply(ctx, d.Telegram, msg, "Available projects: "+available(d.Projects))
+			return reply(ctx, d.Telegram, msg, "Available projects:\n"+available(d.Projects))
 		}
 		if prompt == "" && msg.RequestedProject == "" {
 			return reply(ctx, d.Telegram, msg, "Send a prompt or use #project.")
@@ -91,10 +92,18 @@ func BuildResponder(d Deps) events.Responder {
 func available(c *contexts.ContextsConfig) string {
 	var names []string
 	for n := range c.Contexts {
-		names = append(names, "#"+n)
+		names = append(names, n)
 	}
 	sort.Strings(names)
-	return strings.Join(names, ", ")
+	var out strings.Builder
+	for i, name := range names {
+		if i > 0 {
+			out.WriteByte('\n')
+		}
+		project := c.Contexts[name]
+		fmt.Fprintf(&out, "- #%s\n  Description: %s\n  Directory: %s", name, html.EscapeString(project.Description), html.EscapeString(project.Directory))
+	}
+	return out.String()
 }
 func reply(ctx context.Context, t TelegramClient, msg events.IncomingMessage, text string) error {
 	_, err := t.SendMessage(ctx, telegram.SendMessageParams{ChatID: msg.ChatID, MessageThreadID: msg.TopicID, ReplyToMessageID: msg.MessageID, Text: formatting.Plain(text), ParseMode: "HTML"})

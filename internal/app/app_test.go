@@ -39,7 +39,26 @@ func TestProjectCommandListsProjectsWithoutStartingRun(t *testing.T) {
 	if len(tg.sent) != 1 {
 		t.Fatalf("sent %d messages, want 1", len(tg.sent))
 	}
-	if got, want := tg.sent[0].Text, "Available projects: #api, #demo"; got != want {
+	want := "Available projects:\n- #api\n  Description: \n  Directory: \n- #demo\n  Description: \n  Directory: "
+	if got := tg.sent[0].Text; got != want {
+		t.Fatalf("text = %q, want %q", got, want)
+	}
+}
+
+func TestProjectCommandIncludesDescriptionAndDirectory(t *testing.T) {
+	tg := &responderTelegram{}
+	responder := BuildResponder(Deps{
+		Telegram: tg,
+		Projects: &contexts.ContextsConfig{Contexts: map[string]contexts.ContextConfig{
+			"demo": {Description: "Demo project", Directory: "/home/tray/projects/demo"},
+		}},
+	})
+
+	if err := responder(context.Background(), events.IncomingMessage{Command: "project"}); err != nil {
+		t.Fatal(err)
+	}
+	want := "Available projects:\n- #demo\n  Description: Demo project\n  Directory: /home/tray/projects/demo"
+	if got := tg.sent[0].Text; got != want {
 		t.Fatalf("text = %q, want %q", got, want)
 	}
 }
