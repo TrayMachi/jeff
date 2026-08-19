@@ -73,6 +73,15 @@ type CallbackAnswerParams struct {
 	Text            string `json:"text,omitempty"`
 	ShowAlert       bool   `json:"show_alert,omitempty"`
 }
+type ReactionType struct {
+	Type  string `json:"type"`
+	Emoji string `json:"emoji,omitempty"`
+}
+type SetMessageReactionParams struct {
+	ChatID    int64          `json:"chat_id"`
+	MessageID int64          `json:"message_id"`
+	Reaction  []ReactionType `json:"reaction"`
+}
 type ForumTopic struct {
 	MessageThreadID   int64  `json:"message_thread_id"`
 	Name              string `json:"name"`

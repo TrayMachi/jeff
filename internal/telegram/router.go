@@ -31,11 +31,16 @@ type ForumClient interface {
 	SendMessage(context.Context, SendMessageParams) (Message, error)
 }
 
+type ReactionClient interface {
+	SetMessageReaction(context.Context, SetMessageReactionParams) error
+}
+
 type Router struct {
 	BotUsername string
 	Allowed     map[int64]bool
 	ForumChatID int64
 	Forum       ForumClient
+	Reactions   ReactionClient
 	Dispatch    func(context.Context, Incoming)
 	Callback    func(context.Context, CallbackQuery)
 	TextHandler func(context.Context, Incoming) bool
@@ -85,6 +90,7 @@ func (r *Router) Handle(ctx context.Context, update Update) {
 		return
 	}
 	if newForumRequest {
+		r.reactToPrompt(ctx, msg)
 		r.handleNewForumRequest(ctx, msg, text, requested)
 		return
 	}
@@ -93,8 +99,20 @@ func (r *Router) Handle(ctx context.Context, update Update) {
 	if r.TextHandler != nil && r.TextHandler(ctx, incoming) {
 		return
 	}
+	if incoming.Command == "" && incoming.Text != "" {
+		r.reactToPrompt(ctx, msg)
+	}
 	if r.Dispatch != nil {
 		r.Dispatch(ctx, incoming)
+	}
+}
+
+func (r *Router) reactToPrompt(ctx context.Context, msg *Message) {
+	if r.Reactions == nil {
+		return
+	}
+	if err := r.Reactions.SetMessageReaction(ctx, SetMessageReactionParams{ChatID: msg.Chat.ID, MessageID: msg.MessageID, Reaction: []ReactionType{{Type: "emoji", Emoji: "👀"}}}); err != nil {
+		slog.Warn("failed to react to Telegram prompt", "chat", msg.Chat.ID, "message", msg.MessageID, "error", err)
 	}
 }
 

@@ -81,6 +81,9 @@ func (c *Client) EditMessage(ctx context.Context, p EditMessageParams) (Message,
 func (c *Client) AnswerCallback(ctx context.Context, p CallbackAnswerParams) error {
 	return c.call(ctx, "answerCallbackQuery", p, nil)
 }
+func (c *Client) SetMessageReaction(ctx context.Context, p SetMessageReactionParams) error {
+	return c.call(ctx, "setMessageReaction", p, nil)
+}
 func (c *Client) CreateForumTopic(ctx context.Context, p CreateForumTopicParams) (ForumTopic, error) {
 	var out ForumTopic
 	err := c.call(ctx, "createForumTopic", p, &out)

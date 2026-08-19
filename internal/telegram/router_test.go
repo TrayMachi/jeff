@@ -11,6 +11,15 @@ type fakeForum struct {
 	sent    []SendMessageParams
 }
 
+type fakeReactions struct {
+	set []SetMessageReactionParams
+}
+
+func (f *fakeReactions) SetMessageReaction(_ context.Context, p SetMessageReactionParams) error {
+	f.set = append(f.set, p)
+	return nil
+}
+
 func (f *fakeForum) CreateForumTopic(_ context.Context, p CreateForumTopicParams) (ForumTopic, error) {
 	f.created = append(f.created, p)
 	return f.topic, nil
@@ -63,6 +72,24 @@ func TestMentionedTopicFollowUpDispatches(t *testing.T) {
 	r.Handle(context.Background(), Update{Message: &Message{MessageID: 12, From: &User{ID: 4}, Chat: Chat{ID: -1007, Type: "supergroup"}, MessageThreadID: 78, Text: "@jeff continue", Entities: []Entity{{Type: "mention", Offset: 0, Length: 5}}}})
 	if !called {
 		t.Fatal("did not dispatch mentioned topic follow-up")
+	}
+}
+
+func TestRouterReactsToPrompt(t *testing.T) {
+	reactions := &fakeReactions{}
+	r := &Router{BotUsername: "jeff", Allowed: map[int64]bool{7: true}, Reactions: reactions, Dispatch: func(context.Context, Incoming) {}}
+	r.Handle(context.Background(), Update{Message: &Message{MessageID: 12, From: &User{ID: 4}, Chat: Chat{ID: 7, Type: "group"}, Text: "@jeff continue", Entities: []Entity{{Type: "mention", Offset: 0, Length: 5}}}})
+	if len(reactions.set) != 1 || reactions.set[0].ChatID != 7 || reactions.set[0].MessageID != 12 || len(reactions.set[0].Reaction) != 1 || reactions.set[0].Reaction[0] != (ReactionType{Type: "emoji", Emoji: "👀"}) {
+		t.Fatalf("reactions=%+v", reactions.set)
+	}
+}
+
+func TestRouterDoesNotReactToCommand(t *testing.T) {
+	reactions := &fakeReactions{}
+	r := &Router{Allowed: map[int64]bool{7: true}, Reactions: reactions, Dispatch: func(context.Context, Incoming) {}}
+	r.Handle(context.Background(), Update{Message: &Message{MessageID: 12, From: &User{ID: 4}, Chat: Chat{ID: 7, Type: "private"}, Text: "/status"}})
+	if len(reactions.set) != 0 {
+		t.Fatalf("reactions=%+v", reactions.set)
 	}
 }
 
