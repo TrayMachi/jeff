@@ -113,9 +113,9 @@ func (r *Router) handleNewForumRequest(ctx context.Context, msg *Message, text, 
 		return
 	}
 	link := topicLink(msg.Chat, copied.MessageID, topic.MessageThreadID)
-	ack := fmt.Sprintf("Started request topic %q.", name)
+	ack := "Started topic."
 	if link != "" {
-		ack += " Open it here: " + link
+		ack = "Started topic " + link
 	}
 	_, _ = r.Forum.SendMessage(ctx, SendMessageParams{ChatID: msg.Chat.ID, ReplyToMessageID: msg.MessageID, Text: ack})
 	incoming := Incoming{

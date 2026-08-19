@@ -34,6 +34,9 @@ func TestRouterCreatesForumTopicForTopLevelRequest(t *testing.T) {
 	if len(forum.sent) != 2 || forum.sent[0].MessageThreadID != 77 || forum.sent[1].ReplyToMessageID != 9 {
 		t.Fatalf("sent=%+v", forum.sent)
 	}
+	if got := forum.sent[1].Text; got != "Started topic https://t.me/main/101?thread=77" {
+		t.Fatal(got)
+	}
 }
 func TestForumTopLevelPromptDoesNotNeedMention(t *testing.T) {
 	forum := &fakeForum{topic: ForumTopic{MessageThreadID: 78}}
