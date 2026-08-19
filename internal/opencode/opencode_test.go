@@ -205,6 +205,12 @@ func TestCreateSessionSendsAllowAllRuleset(t *testing.T) {
 		if body.Permission[3]["pattern"] != "/work/**" {
 			t.Errorf("project rule = %q, want /work/**", body.Permission[3]["pattern"])
 		}
+		if body.Permission[4]["pattern"] != "/tmp/opencode/**" {
+			t.Errorf("temporary directory rule = %q, want /tmp/opencode/**", body.Permission[4]["pattern"])
+		}
+		if body.Permission[5]["pattern"] != "/home/tray/projects/work/**" {
+			t.Errorf("shared workspace rule = %q, want /home/tray/projects/work/**", body.Permission[5]["pattern"])
+		}
 		_ = json.NewEncoder(w).Encode(map[string]any{"id": "ses_123"})
 	}))
 	id, err := c.CreateSession(t.Context(), "/work")

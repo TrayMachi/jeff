@@ -77,6 +77,7 @@ const maxHealthProbe = 5 * time.Second
 // opencode state.
 var allowedExternalDirs = []string{
 	"/tmp/opencode/**",
+	"/home/tray/projects/work/**",
 	"/home/tray/go/pkg/mod/**",
 	"/home/tray/.agents/skills/**",
 	"/home/tray/.claude/skills/**",
@@ -93,6 +94,11 @@ func permissionRules(directory string) []map[string]string {
 		map[string]string{
 			"permission": "external_directory",
 			"pattern":    "/home/tray/projects/*-worktrees/**",
+			"action":     "allow",
+		},
+		map[string]string{
+			"permission": "external_directory",
+			"pattern":    "/home/tray/projects/work/*-worktrees/**",
 			"action":     "allow",
 		},
 	)
