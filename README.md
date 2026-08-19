@@ -24,6 +24,7 @@ For isolated group requests, convert the main group to a Telegram forum supergro
 - `/project alias prompt` does the same in a discoverable form.
 - `/project` lists configured projects.
 - `/status` shows the OpenCode session state.
+- `/health` shows whether Jeff is alive and the state reported by `systemd`.
 - `/cancel` and `/stop` abort the active OpenCode turn.
 
 A conversation stays bound to its first project. Start a new Telegram conversation to use another project.

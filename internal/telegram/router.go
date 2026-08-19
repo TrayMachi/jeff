@@ -62,7 +62,7 @@ func (r *Router) Handle(ctx context.Context, update Update) {
 		text = stripBotMention(msg.Text, msg.Entities, r.BotUsername)
 	}
 	command, isCommand := conversation.ParseCommand(text, r.BotUsername)
-	if isCommand && command.Name != "cancel" && command.Name != "stop" && command.Name != "status" && command.Name != "project" {
+	if isCommand && command.Name != "cancel" && command.Name != "stop" && command.Name != "status" && command.Name != "health" && command.Name != "project" {
 		return
 	}
 	requested := ""
@@ -71,7 +71,7 @@ func (r *Router) Handle(ctx context.Context, update Update) {
 		case "project":
 			requested = command.Argument
 			text = command.Prompt
-		case "cancel", "stop", "status":
+		case "cancel", "stop", "status", "health":
 			text = "/" + command.Name
 		}
 	} else {
@@ -81,7 +81,7 @@ func (r *Router) Handle(ctx context.Context, update Update) {
 	topLevel := msg.ReplyToMessage == nil && (msg.MessageThreadID == 0 || msg.MessageThreadID == 1)
 	inConfiguredForum := r.ForumChatID != 0 && msg.Chat.ID == r.ForumChatID && msg.Chat.Type == "supergroup"
 	newForumRequest := inConfiguredForum && topLevel && r.Forum != nil && !isCommand && (mentions || requested != "")
-	if msg.Chat.Type != "private" && !mentions && !newForumRequest {
+	if msg.Chat.Type != "private" && !mentions && !newForumRequest && !isCommand {
 		return
 	}
 	if newForumRequest {

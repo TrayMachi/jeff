@@ -2,6 +2,7 @@ package events
 
 import (
 	"context"
+	"html"
 	"log/slog"
 	"strings"
 	"sync"
@@ -14,11 +15,13 @@ type TelegramClient interface {
 }
 type Canceller func(context.Context, string) (bool, error)
 type StatusProvider func(context.Context, string, bool) (string, error)
+type HealthProvider func(context.Context) (string, error)
 type Dispatcher struct {
 	telegram  TelegramClient
 	responder Responder
 	cancel    Canceller
 	status    StatusProvider
+	health    HealthProvider
 	mu        sync.Mutex
 	running   map[string]int
 	wg        sync.WaitGroup
@@ -28,10 +31,11 @@ type DispatcherParams struct {
 	Responder Responder
 	Canceller Canceller
 	Status    StatusProvider
+	Health    HealthProvider
 }
 
 func NewDispatcher(p DispatcherParams) *Dispatcher {
-	return &Dispatcher{telegram: p.Telegram, responder: p.Responder, cancel: p.Canceller, status: p.Status, running: map[string]int{}}
+	return &Dispatcher{telegram: p.Telegram, responder: p.Responder, cancel: p.Canceller, status: p.Status, health: p.Health, running: map[string]int{}}
 }
 func (d *Dispatcher) Dispatch(ctx context.Context, msg IncomingMessage) {
 	if msg.ChatType != "private" && !msg.MentionsBot && msg.Command == "" && !msg.InForumTopic {
@@ -43,6 +47,9 @@ func (d *Dispatcher) Dispatch(ctx context.Context, msg IncomingMessage) {
 		return
 	case "/status":
 		d.wg.Go(func() { d.handleStatus(ctx, msg) })
+		return
+	case "/health":
+		d.wg.Go(func() { d.handleHealth(ctx, msg) })
 		return
 	}
 	d.mu.Lock()
@@ -94,6 +101,15 @@ func (d *Dispatcher) handleStatus(ctx context.Context, msg IncomingMessage) {
 		}
 	}
 	d.reply(ctx, msg, text)
+}
+func (d *Dispatcher) handleHealth(ctx context.Context, msg IncomingMessage) {
+	state := "unavailable"
+	if d.health != nil {
+		if value, err := d.health(ctx); err == nil {
+			state = value
+		}
+	}
+	d.reply(ctx, msg, "<b>Alive</b>: yes\n<b>systemd (jeff.service)</b>: "+html.EscapeString(state))
 }
 func (d *Dispatcher) reply(ctx context.Context, msg IncomingMessage, text string) {
 	_, err := d.telegram.SendMessage(ctx, telegram.SendMessageParams{ChatID: msg.ChatID, MessageThreadID: msg.TopicID, ReplyToMessageID: msg.MessageID, Text: text, ParseMode: "HTML"})
