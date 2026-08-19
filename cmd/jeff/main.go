@@ -21,6 +21,7 @@ import (
 	"github.com/local/jeff/internal/session"
 	"github.com/local/jeff/internal/store"
 	"github.com/local/jeff/internal/streamer"
+	"github.com/local/jeff/internal/systemd"
 	"github.com/local/jeff/internal/telegram"
 )
 
@@ -81,7 +82,9 @@ func run() error {
 	eventStream := opencode.NewEventStream(ctx, oc)
 	resolver := session.NewResolver(db, oc, catalog.Config)
 	responder := app.BuildResponder(app.Deps{Telegram: bot, OpenCode: eventStream, Resolver: resolver, Projects: catalog.Config, QA: qa, Stream: streamer.StreamReply, Questions: questions})
-	dispatcher := events.NewDispatcher(events.DispatcherParams{Telegram: bot, Responder: responder, Canceller: app.BuildCanceller(db, oc, catalog.Config, questions.ExpireConversation), Status: app.BuildStatusProvider(db, oc, catalog.Config)})
+	dispatcher := events.NewDispatcher(events.DispatcherParams{Telegram: bot, Responder: responder, Canceller: app.BuildCanceller(db, oc, catalog.Config, questions.ExpireConversation), Status: app.BuildStatusProvider(db, oc, catalog.Config), Health: func(ctx context.Context) (string, error) {
+		return systemd.ActiveState(ctx, "jeff.service")
+	}})
 	router := &telegram.Router{BotUsername: me.Username, Allowed: cfg.TelegramAllowedChats, ForumChatID: cfg.TelegramForumChatID, Forum: bot, Dispatch: func(ctx context.Context, incoming telegram.Incoming) {
 		dispatcher.Dispatch(ctx, events.IncomingMessage{Conversation: incoming.Conversation, MessageID: incoming.MessageID, ChatID: incoming.ChatID, TopicID: incoming.TopicID, Text: incoming.Text, UserID: incoming.UserID, UserName: incoming.UserName, ChatType: incoming.ChatType, MentionsBot: incoming.MentionsBot, RequestedProject: incoming.RequestedProject, Command: incoming.Command, InForumTopic: incoming.InForumTopic})
 	}, TextHandler: func(ctx context.Context, incoming telegram.Incoming) bool {
