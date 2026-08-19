@@ -7,9 +7,9 @@ Requires=opencode.service
 [Service]
 Type=simple
 User=tray
-WorkingDirectory=/home/tray/project/jeff
-EnvironmentFile=/home/tray/project/jeff/.env
-ExecStart=/home/tray/project/jeff/bin/jeff
+WorkingDirectory=/home/tray/projects/jeff
+EnvironmentFile=/home/tray/projects/jeff/.env
+ExecStart=/home/tray/projects/jeff/bin/jeff
 Restart=on-failure
 RestartSec=5s
 

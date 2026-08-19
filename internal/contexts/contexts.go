@@ -306,7 +306,7 @@ func validateContext(name string, cc ContextConfig) []string {
 		problems = append(problems, fmt.Sprintf(
 			"projects.%s.directory: must be an absolute path, got %q", name, cc.Directory))
 	default:
-		root := filepath.Clean("/home/tray/project")
+		root := filepath.Clean("/home/tray/projects")
 		directory := filepath.Clean(cc.Directory)
 		rel, err := filepath.Rel(root, directory)
 		if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {

@@ -3,12 +3,12 @@ package projects
 import "testing"
 
 func TestUnderRoot(t *testing.T) {
-	for _, path := range []string{"/home/tray/project/app", "/home/tray/project/nested/app"} {
+	for _, path := range []string{"/home/tray/projects/app", "/home/tray/projects/nested/app"} {
 		if !underRoot(path) {
 			t.Errorf("rejected %s", path)
 		}
 	}
-	for _, path := range []string{"/home/tray/projective/app", "/home/tray/secrets", "/home/tray/project/../secrets"} {
+	for _, path := range []string{"/home/tray/projectsive/app", "/home/tray/secrets", "/home/tray/projects/../secrets"} {
 		if underRoot(path) {
 			t.Errorf("accepted %s", path)
 		}

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-root=/home/tray/project/jeff
+root=/home/tray/projects/jeff
 unit="$root/deploy/jeff.service"
 
 [[ -x "$root/bin/jeff" ]] || { echo "missing executable: $root/bin/jeff" >&2; exit 1; }

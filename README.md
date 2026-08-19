@@ -5,14 +5,14 @@ Jeff is a Telegram-only OpenCode harness. It is a separate service from Ivy and 
 ## Setup
 
 ```bash
-cd /home/tray/project/jeff
+cd /home/tray/projects/jeff
 cp .env.example .env
 cp config.example.yaml config.yaml
 $EDITOR .env config.yaml
 make check
 ```
 
-Set `TELEGRAM_BOT_TOKEN` from BotFather. `TELEGRAM_ALLOWED_CHAT_IDS` is a comma-separated allowlist; an empty value rejects every chat. Keep each configured project explicitly listed under `projects` and keep its directory under `/home/tray/project`.
+Set `TELEGRAM_BOT_TOKEN` from BotFather. `TELEGRAM_ALLOWED_CHAT_IDS` is a comma-separated allowlist; an empty value rejects every chat. Keep each configured project explicitly listed under `projects` and keep its directory under `/home/tray/projects`.
 
 Jeff receives updates with Telegram long polling, so it does not need a public IP, webhook, tunnel, or listening port. In private chats it accepts ordinary messages. In groups it accepts messages mentioning the bot or supported commands.
 

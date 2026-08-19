@@ -2,7 +2,7 @@ default_project: demo
 
 projects:
   demo:
-    directory: /home/tray/project/demo
+    directory: /home/tray/projects/demo
     description: Demo project
     model: openai/gpt-5.6-sol
     effort: medium

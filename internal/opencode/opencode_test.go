@@ -130,7 +130,7 @@ func TestNoPasswordSendsNoAuthHeader(t *testing.T) {
 func TestAllowAllPermissionsOrdering(t *testing.T) {
 	// opencode resolves permissions with findLast, so the broad external deny
 	// must precede every allow-list rule, otherwise it would shadow the allows.
-	rules := permissionRules("/home/tray/project/demo")
+	rules := permissionRules("/home/tray/projects/demo")
 	if r := rules[0]; r["permission"] != "*" || r["action"] != "allow" {
 		t.Fatalf("first rule = %v, want catch-all allow", r)
 	}

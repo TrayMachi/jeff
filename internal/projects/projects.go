@@ -9,7 +9,7 @@ import (
 	"github.com/local/jeff/internal/contexts"
 )
 
-const Root = "/home/tray/project"
+const Root = "/home/tray/projects"
 
 type Catalog struct{ Config *contexts.ContextsConfig }
 

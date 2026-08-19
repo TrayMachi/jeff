@@ -21,7 +21,7 @@ func TestLoadsSingleContext(t *testing.T) {
 default_context: otp
 contexts:
   otp:
-    directory: /home/tray/project/otp
+    directory: /home/tray/projects/otp
     model: anthropic/claude-opus-4-8
     effort: high
 `)
@@ -30,7 +30,7 @@ contexts:
 		t.Fatal(err)
 	}
 	ctx := cfg.Get("")
-	if ctx.Directory != "/home/tray/project/otp" {
+	if ctx.Directory != "/home/tray/projects/otp" {
 		t.Errorf("Directory = %q", ctx.Directory)
 	}
 	provider, model := ctx.ProviderModel()
@@ -47,7 +47,7 @@ func TestLoadReadsAllSettings(t *testing.T) {
 default_context: otp
 contexts:
   otp:
-    directory: /home/tray/project/otp
+    directory: /home/tray/projects/otp
 reactions:
   processing: Hourglass
 qa:
@@ -64,7 +64,7 @@ jobs:
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.Contexts.Get("").Directory != "/home/tray/project/otp" {
+	if cfg.Contexts.Get("").Directory != "/home/tray/projects/otp" {
 		t.Errorf("default directory = %q", cfg.Contexts.Get("").Directory)
 	}
 	if cfg.Reactions.Processing != "Hourglass" {
@@ -79,7 +79,7 @@ jobs:
 }
 
 func TestLoadJobsDefaultsToEmpty(t *testing.T) {
-	p := write(t, "default_context: otp\ncontexts:\n  otp:\n    directory: /home/tray/project/otp\n")
+	p := write(t, "default_context: otp\ncontexts:\n  otp:\n    directory: /home/tray/projects/otp\n")
 	cfg, err := Load(p)
 	if err != nil {
 		t.Fatal(err)
@@ -108,7 +108,7 @@ func TestLoadJobsRejectsInvalidDefinitions(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := write(t, "default_context: otp\ncontexts:\n  otp:\n    directory: /home/tray/project/otp\njobs:\n  "+tt.job+"\n")
+			p := write(t, "default_context: otp\ncontexts:\n  otp:\n    directory: /home/tray/projects/otp\njobs:\n  "+tt.job+"\n")
 			_, err := Load(p)
 			if err == nil || !strings.Contains(err.Error(), tt.problem) {
 				t.Fatalf("Load() error = %v, want containing %q", err, tt.problem)
@@ -123,7 +123,7 @@ func TestIgnoresUnknownTopLevelBlocks(t *testing.T) {
 default_context: otp
 contexts:
   otp:
-    directory: /home/tray/project/otp
+    directory: /home/tray/projects/otp
 qa:
   turn_timeout_minutes: 60
 extension:
@@ -133,7 +133,7 @@ extension:
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.Get("").Directory != "/home/tray/project/otp" {
+	if cfg.Get("").Directory != "/home/tray/projects/otp" {
 		t.Errorf("Directory = %q", cfg.Get("").Directory)
 	}
 }
@@ -143,7 +143,7 @@ func TestRejectsUnknownKeyInsideContext(t *testing.T) {
 default_context: otp
 contexts:
   otp:
-    directory: /home/tray/project/otp
+    directory: /home/tray/projects/otp
     typo_field: oops
 `)
 	if _, err := LoadContexts(p); err == nil {
@@ -156,7 +156,7 @@ func TestRejectsDefaultNotInContexts(t *testing.T) {
 default_context: missing
 contexts:
   otp:
-    directory: /home/tray/project/otp
+    directory: /home/tray/projects/otp
 `)
 	if _, err := LoadContexts(p); err == nil {
 		t.Fatal("LoadContexts succeeded, want error")
@@ -202,7 +202,7 @@ func TestRealConfigYamlLoads(t *testing.T) {
 	if cfg.DefaultContext != "demo" {
 		t.Errorf("DefaultContext = %q", cfg.DefaultContext)
 	}
-	if cfg.Get("").Directory != "/home/tray/project/demo" {
+	if cfg.Get("").Directory != "/home/tray/projects/demo" {
 		t.Errorf("default directory = %q", cfg.Get("").Directory)
 	}
 	if fileCfg.Jobs == nil {
