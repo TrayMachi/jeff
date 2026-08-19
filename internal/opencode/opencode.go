@@ -90,16 +90,11 @@ func permissionRules(directory string) []map[string]string {
 	}
 
 	rules = append(rules,
-    	map[string]string{
-        	"permission": "external_directory",
-        	"pattern":    "/home/tray/projects/*-worktrees",
-        	"action":     "allow",
-    	},
-    	map[string]string{
-        	"permission": "external_directory",
-        	"pattern":    "/home/tray/projects/*-worktrees/**",
-        	"action":     "allow",
-    	},
+		map[string]string{
+			"permission": "external_directory",
+			"pattern":    "/home/tray/projects/*-worktrees/**",
+			"action":     "allow",
+		},
 	)
 
 	for _, dir := range append([]string{strings.TrimRight(strings.TrimSpace(directory), "/") + "/**"}, allowedExternalDirs...) {
