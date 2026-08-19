@@ -62,12 +62,3 @@ func TestProjectCommandIncludesDescriptionAndDirectory(t *testing.T) {
 		t.Fatalf("text = %q, want %q", got, want)
 	}
 }
-
-func TestShipPrompt(t *testing.T) {
-	if got := shipPrompt("fix the bug"); got != "ship fix the bug" {
-		t.Fatalf("prompt=%q", got)
-	}
-	if got := shipPrompt("ship fix the bug"); got != "ship fix the bug" {
-		t.Fatalf("prompt=%q", got)
-	}
-}

@@ -82,20 +82,12 @@ func BuildResponder(d Deps) events.Responder {
 			}
 			expire = func(ctx context.Context) { d.Questions.ExpireConversation(ctx, msg.Conversation.String()) }
 		}
-		params := streamer.Params{OpenCode: d.OpenCode, Send: send, Status: BuildStatus(d.Telegram, msg.ChatID, msg.TopicID), AskQuestion: ask, ExpireQuestions: expire, SessionID: resolved.SessionID, Prompt: shipPrompt(prompt), Directory: resolved.Directory, Provider: resolved.Provider, Model: resolved.Model, Effort: resolved.Effort, Preamble: preamble, Timeout: d.QA.TurnTimeout(), QuestionTimeout: d.QA.QuestionTimeout()}
+		params := streamer.Params{OpenCode: d.OpenCode, Send: send, Status: BuildStatus(d.Telegram, msg.ChatID, msg.TopicID), AskQuestion: ask, ExpireQuestions: expire, SessionID: resolved.SessionID, Prompt: prompt, Directory: resolved.Directory, Provider: resolved.Provider, Model: resolved.Model, Effort: resolved.Effort, Preamble: preamble, Timeout: d.QA.TurnTimeout(), QuestionTimeout: d.QA.QuestionTimeout()}
 		return prompts.Submit(ctx, msg.Conversation.String(), params.PromptParams(), func(ctx context.Context, ready func()) error {
 			params.StreamReady = ready
 			return d.Stream(ctx, params)
 		})
 	}
-}
-
-func shipPrompt(prompt string) string {
-	fields := strings.Fields(prompt)
-	if len(fields) > 0 && strings.EqualFold(fields[0], "ship") {
-		return prompt
-	}
-	return "ship " + prompt
 }
 func available(c *contexts.ContextsConfig) string {
 	var names []string
