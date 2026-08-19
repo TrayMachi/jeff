@@ -117,7 +117,7 @@ func (r *Router) reactToPrompt(ctx context.Context, msg *Message) {
 }
 
 func (r *Router) handleNewForumRequest(ctx context.Context, msg *Message, text, requested string) {
-	name := topicName(requested, displayName(*msg.From), text)
+	name := topicName(text)
 	topic, err := r.Forum.CreateForumTopic(ctx, CreateForumTopicParams{ChatID: msg.Chat.ID, Name: name})
 	if err != nil {
 		slog.Warn("failed to create Telegram forum topic", "chat", msg.Chat.ID, "error", err)
@@ -165,25 +165,29 @@ func (r *Router) incoming(msg *Message, text, requested, command string) Incomin
 	return Incoming{Conversation: key, MessageID: msg.MessageID, ChatID: msg.Chat.ID, TopicID: msg.MessageThreadID, Text: text, UserID: msg.From.ID, UserName: displayName(*msg.From), ChatType: msg.Chat.Type, MentionsBot: messageMentionsBot(msg, r.BotUsername), RequestedProject: requested, Command: command, InForumTopic: r.ForumChatID != 0 && msg.Chat.ID == r.ForumChatID && msg.Chat.Type == "supergroup" && msg.MessageThreadID != 0}
 }
 
-func topicName(project, user, prompt string) string {
-	parts := []string{}
-	if project != "" {
-		parts = append(parts, "#"+project)
+func topicName(prompt string) string {
+	name := strings.Join(strings.Fields(prompt), " ")
+	if end := strings.IndexAny(name, "?!.\n"); end >= 0 {
+		name = name[:end]
 	}
-	if user != "" {
-		parts = append(parts, user)
-	}
-	if prompt != "" {
-		parts = append(parts, strings.Join(strings.Fields(prompt), " "))
-	}
-	name := strings.Join(parts, " — ")
-	runes := []rune(name)
-	if len(runes) > 128 {
-		name = string(runes[:125]) + "..."
+	name = strings.TrimSpace(name)
+	lower := strings.ToLower(name)
+	for _, prefix := range []string{"any recommendations for ", "can you ", "could you ", "please ", "i need help with ", "how do i "} {
+		if strings.HasPrefix(lower, prefix) {
+			name = strings.TrimSpace(name[len(prefix):])
+			break
+		}
 	}
 	if name == "" {
 		return "Jeff request"
 	}
+	runes := []rune(name)
+	if len(runes) > 48 {
+		name = string(runes[:45]) + "..."
+	}
+	runes = []rune(name)
+	runes[0] = []rune(strings.ToUpper(string(runes[0])))[0]
+	name = string(runes)
 	return name
 }
 

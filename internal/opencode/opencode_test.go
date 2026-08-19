@@ -199,8 +199,11 @@ func TestCreateSessionSendsAllowAllRuleset(t *testing.T) {
 		if len(body.Permission) != len(permissionRules("/work")) {
 			t.Errorf("got %d permission rules, want %d", len(body.Permission), len(permissionRules("/work")))
 		}
-		if body.Permission[2]["pattern"] != "/work/**" {
-			t.Errorf("project rule = %q, want /work/**", body.Permission[2]["pattern"])
+		if body.Permission[2]["pattern"] != "/home/tray/projects/*-worktrees/**" {
+			t.Errorf("worktree rule = %q, want /home/tray/projects/*-worktrees/**", body.Permission[2]["pattern"])
+		}
+		if body.Permission[3]["pattern"] != "/work/**" {
+			t.Errorf("project rule = %q, want /work/**", body.Permission[3]["pattern"])
 		}
 		_ = json.NewEncoder(w).Encode(map[string]any{"id": "ses_123"})
 	}))

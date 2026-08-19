@@ -120,8 +120,15 @@ func TestTopicLink(t *testing.T) {
 	}
 }
 func TestTopicNameIsBounded(t *testing.T) {
-	if got := topicName("api", "@a", string(make([]rune, 200))); len([]rune(got)) > 128 {
+	if got := topicName(string(make([]rune, 200))); len([]rune(got)) > 48 {
 		t.Fatal(len([]rune(got)))
+	}
+}
+
+func TestTopicNameUsesConciseRequestSubject(t *testing.T) {
+	got := topicName("any recommendations for topic naming? current one is too long")
+	if got != "Topic naming" {
+		t.Fatalf("got %q", got)
 	}
 }
 
