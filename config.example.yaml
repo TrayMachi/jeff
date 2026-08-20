@@ -6,6 +6,27 @@ projects:
     description: Demo project
     model: openai/gpt-5.6-sol
     effort: medium
+  javamifi:
+    directory: /home/tray/projects/work/javamifi
+    description: JavaMifi workspace
+  dingsglobal:
+    directory: /home/tray/projects/work/dingsglobal
+    description: DingsGlobal workspace
+  cms-javamifi:
+    directory: /home/tray/projects/work/javamifi/cms.javamifi.com
+    description: JavaMifi CMS
+  javamifi-be:
+    directory: /home/tray/projects/work/javamifi/javamifi.com-be
+    description: JavaMifi backend
+  javamifi-fe:
+    directory: /home/tray/projects/work/javamifi/javamifi.com-fe
+    description: JavaMifi frontend
+  dingsglobal-web:
+    directory: /home/tray/projects/work/dingsglobal/dingsglobal-web
+    description: DingsGlobal frontend
+  dingsglobal-api:
+    directory: /home/tray/projects/work/dingsglobal/dingsglobal-api
+    description: DingsGlobal API
 
 qa:
   turn_timeout_minutes: 60

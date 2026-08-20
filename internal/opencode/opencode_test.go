@@ -199,17 +199,17 @@ func TestCreateSessionSendsAllowAllRuleset(t *testing.T) {
 		if len(body.Permission) != len(permissionRules("/work")) {
 			t.Errorf("got %d permission rules, want %d", len(body.Permission), len(permissionRules("/work")))
 		}
-		if body.Permission[2]["pattern"] != "/home/tray/projects/*-worktrees/**" {
-			t.Errorf("worktree rule = %q, want /home/tray/projects/*-worktrees/**", body.Permission[2]["pattern"])
+		wantPatterns := []string{
+			"/home/tray/projects/*-worktrees/**",
+			"/home/tray/projects/work/*-worktrees/**",
+			"/work/**",
+			"/tmp/opencode/**",
+			"/home/tray/projects/work/**",
 		}
-		if body.Permission[3]["pattern"] != "/work/**" {
-			t.Errorf("project rule = %q, want /work/**", body.Permission[3]["pattern"])
-		}
-		if body.Permission[4]["pattern"] != "/tmp/opencode/**" {
-			t.Errorf("temporary directory rule = %q, want /tmp/opencode/**", body.Permission[4]["pattern"])
-		}
-		if body.Permission[5]["pattern"] != "/home/tray/projects/work/**" {
-			t.Errorf("shared workspace rule = %q, want /home/tray/projects/work/**", body.Permission[5]["pattern"])
+		for i, want := range wantPatterns {
+			if got := body.Permission[i+2]["pattern"]; got != want {
+				t.Errorf("permission rule %d = %q, want %q", i+2, got, want)
+			}
 		}
 		_ = json.NewEncoder(w).Encode(map[string]any{"id": "ses_123"})
 	}))
